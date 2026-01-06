@@ -115,11 +115,11 @@ func (s Store) GetCarByBrand(ctx context.Context, brand string, isEngine bool) (
 	return cars, nil
 }
 
-func (s Store) CreateCar(ctx context.Context, carRequest *models.CarRequest) (models.Car, error) {
+func (s Store) CreateCar(ctx context.Context, carReq *models.CarRequest) (models.Car, error) {
 	var createdCar models.Car
 	var engineID uuid.UUID
 
-	err := s.db.QueryRowContext(ctx, "SELECT id FROM engine WHERE id = $1", carRequest.Engine.EngineID).Scan(&engineID)
+	err := s.db.QueryRowContext(ctx, "SELECT id FROM engine WHERE id = $1", carReq.Engine.EngineID).Scan(&engineID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return createdCar, errors.New("engine_id does not exist")
@@ -132,12 +132,12 @@ func (s Store) CreateCar(ctx context.Context, carRequest *models.CarRequest) (mo
 
 	newCar := models.Car{
 		ID:        carID,
-		Name:      carRequest.Name,
-		Year:      carRequest.Year,
-		Brand:     carRequest.Brand,
-		FuelType:  carRequest.FuelType,
-		Engine:    carRequest.Engine,
-		Price:     carRequest.Price,
+		Name:      carReq.Name,
+		Year:      carReq.Year,
+		Brand:     carReq.Brand,
+		FuelType:  carReq.FuelType,
+		Engine:    carReq.Engine,
+		Price:     carReq.Price,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
 	}

@@ -53,7 +53,7 @@ func (e EngineStore) EngineByID(ctx context.Context, id string) (models.Engine, 
 	return engine, nil
 }
 
-func (e EngineStore) CreateEngine(ctx context.Context, engineRequest *models.EngineRequest) (models.Engine, error) {
+func (e EngineStore) CreateEngine(ctx context.Context, engineReq *models.EngineRequest) (models.Engine, error) {
 
 	tx, err := e.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -77,15 +77,15 @@ func (e EngineStore) CreateEngine(ctx context.Context, engineRequest *models.Eng
 
 	_, err = tx.ExecContext(ctx,
 		"INSERT INTO engine ( id, displacement, no_of_cylinders, car_range ) VALUES ( $1, $2, $3, $4 )",
-		engineID, engineRequest.Displacement, engineRequest.NoOfCylinders, engineRequest.CarRange)
+		engineID, engineReq.Displacement, engineReq.NoOfCylinders, engineReq.CarRange)
 	if err != nil {
 		return models.Engine{}, err
 	}
 	engine := models.Engine{
 		EngineID:      engineID,
-		Displacement:  engineRequest.Displacement,
-		NoOfCylinders: engineRequest.NoOfCylinders,
-		CarRange:      engineRequest.CarRange,
+		Displacement:  engineReq.Displacement,
+		NoOfCylinders: engineReq.NoOfCylinders,
+		CarRange:      engineReq.CarRange,
 	}
 
 	return engine, nil
