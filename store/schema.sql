@@ -1,13 +1,7 @@
 
 -- Drop existing foreign key constraint (if exists)
-ALTER TABLE IF EXISTS car
-DROP CONSTRAINT IF EXISTS fk_engine_id;
-
--- Truncate car table to clear existing data
-TRUNCATE TABLE car;
-
--- Truncate engine table to clear existing data
-TRUNCATE TABLE engine;
+DROP TABLE IF EXISTS car;
+DROP TABLE IF EXISTS engine;
 
 -- Create engine table
 CREATE TABLE IF NOT EXISTS engine (
