@@ -79,7 +79,7 @@ func main() {
 
 	protected.HandleFunc("/cars/{id}", carHandler.GetCarByID).Methods("GET")
 	protected.HandleFunc("/cars", carHandler.GetCarByBrand).Methods("GET")
-	protected.HandleFunc("/cars", carHandler.GetCarByID).Methods("POST")
+	protected.HandleFunc("/cars", carHandler.CreateCar).Methods("POST")
 	protected.HandleFunc("/cars/{id}", carHandler.UpdateCar).Methods("PUT")
 	protected.HandleFunc("/cars/{id}", carHandler.DeleteCar).Methods("DELETE")
 
