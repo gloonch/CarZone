@@ -25,7 +25,7 @@ func main() {
 	}
 
 	driver.InitDB()
-	// defer driver.CloseDB() // Temporarily disabled due to nil pointer issue
+	defer driver.CloseDB()
 
 	db := driver.GetDB()
 	carStore := carStore.NewStore(db)
@@ -39,10 +39,10 @@ func main() {
 
 	router := mux.NewRouter()
 
-	// schemaFile := "./store/schema.sql"
-	// if err := executeSchemaFile(db, schemaFile); err != nil {
-	// 	log.Fatalf("Error while executing the schema file: ", err)
-	// }
+	schemaFile := "./store/schema.sql"
+	if err := executeSchemaFile(db, schemaFile); err != nil {
+		log.Fatalf("Error while executing the schema file: ", err)
+	}
 
 	router.HandleFunc("/cars/{id}", carHandler.GetCarByID).Methods("GET")
 	router.HandleFunc("/cars", carHandler.GetCarByBrand).Methods("GET")
