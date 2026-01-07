@@ -9,6 +9,8 @@ services:
       DB_USER: postgress
       DB_PASSWORD: 12345
       DB_NAME: postgress
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_AGENT_PORT: 4318
     depends_on:
       db:
         condition: service_healthy
@@ -30,5 +32,12 @@ services:
       timeout: 5s
       retries: 5
 
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "4318:4318"
+      - "14268:14268"
+      - "16686:16686"
 volumes:
   postgres-data:

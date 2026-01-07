@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gloonch/CarZone/driver"
 	carHandler "github.com/gloonch/CarZone/handler/car"
@@ -18,6 +20,13 @@ import (
 	engineStore "github.com/gloonch/CarZone/store/engine"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.9.0"
 )
 
 func main() {
@@ -25,6 +34,18 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	traceProvider, err := startTracing()
+	if err != nil {
+		log.Fatalf("Failed to start tracing: ", err)
+	}
+	defer func() {
+		if err := traceProvider.Shutdown(context.Background()); err != nil {
+			log.Fatalf("Failed to shutdown tracing: ", err)
+		}
+	}()
+
+	otel.SetTracerProvider(traceProvider)
 
 	driver.InitDB()
 	defer driver.CloseDB()
@@ -40,6 +61,8 @@ func main() {
 	engineHandler := engineHandler.NewEngineHandler(engineService)
 
 	router := mux.NewRouter()
+
+	router.Use(otelmux.Middleware("CarZone"))
 
 	schemaFile := "./store/schema.sql"
 	if err := executeSchemaFile(db, schemaFile); err != nil {
@@ -81,4 +104,39 @@ func executeSchemaFile(db *sql.DB, file string) error {
 		return err
 	}
 	return nil
+}
+
+func startTracing() (*trace.TracerProvider, error) {
+	header := map[string]string{
+		"Content-Type": "application/json",
+	}
+
+	exporter, err := otlptrace.New(
+		context.Background(),
+		otlptracehttp.NewClient(
+			otlptracehttp.WithEndpoint("jaeger:4318"),
+			otlptracehttp.WithHeaders(header),
+			otlptracehttp.WithInsecure(),
+		),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("Creating New Exporter: %v", err)
+	}
+
+	tracerProvider := trace.NewTracerProvider(
+		trace.WithBatcher(
+			exporter,
+			trace.WithMaxExportBatchSize(trace.DefaultMaxExportBatchSize),
+			trace.WithBatchTimeout(trace.DefaultScheduleDelay*time.Millisecond),
+		),
+		trace.WithResource(
+			resource.NewWithAttributes(
+				semconv.SchemaURL,
+				semconv.ServiceNameKey.String("CarZone"),
+			),
+		),
+	)
+	return tracerProvider, nil
+
 }

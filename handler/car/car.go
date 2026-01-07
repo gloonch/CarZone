@@ -9,6 +9,7 @@ import (
 	"github.com/gloonch/CarZone/models"
 	"github.com/gloonch/CarZone/service"
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/otel"
 )
 
 type CarHandler struct {
@@ -23,7 +24,11 @@ func NewCarHandler(service service.CarServiceInterface) *CarHandler {
 
 func (handler *CarHandler) GetCarByID(w http.ResponseWriter, r *http.Request) {
 
-	ctx := r.Context()
+	tracer := otel.Tracer("car-handler")
+	ctx, span := tracer.Start(r.Context(), "GetCarByID-Handler")
+	defer span.End()
+
+	//ctx := r.Context()
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -55,7 +60,11 @@ func (handler *CarHandler) GetCarByID(w http.ResponseWriter, r *http.Request) {
 
 func (handler *CarHandler) GetCarByBrand(w http.ResponseWriter, r *http.Request) {
 
-	ctx := r.Context()
+	tracer := otel.Tracer("car-handler")
+	ctx, span := tracer.Start(r.Context(), "GetCarByBrand-Handler")
+	defer span.End()
+
+	//ctx := r.Context()
 	brand := r.URL.Query().Get("brand")
 	isEngine := r.URL.Query().Get("engine") == "true"
 
@@ -84,7 +93,11 @@ func (handler *CarHandler) GetCarByBrand(w http.ResponseWriter, r *http.Request)
 }
 
 func (handler *CarHandler) CreateCar(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+
+	tracer := otel.Tracer("car-handler")
+	ctx, span := tracer.Start(r.Context(), "CreateCar-Handler")
+	defer span.End()
+	//ctx := r.Context()
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -124,7 +137,12 @@ func (handler *CarHandler) CreateCar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *CarHandler) UpdateCar(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+
+	tracer := otel.Tracer("car-handler")
+	ctx, span := tracer.Start(r.Context(), "UpdateCar-Handler")
+	defer span.End()
+
+	//ctx := r.Context()
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -164,7 +182,12 @@ func (handler *CarHandler) UpdateCar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *CarHandler) DeleteCar(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+
+	tracer := otel.Tracer("car-handler")
+	ctx, span := tracer.Start(r.Context(), "DeleteCar-Handler")
+	defer span.End()
+
+	//ctx := r.Context()
 	params := mux.Vars(r)
 	id := params["id"]
 

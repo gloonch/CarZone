@@ -8,6 +8,7 @@ import (
 
 	"github.com/gloonch/CarZone/models"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
 )
 
 type EngineStore struct {
@@ -21,6 +22,10 @@ func NewEngineStore(db *sql.DB) *EngineStore {
 }
 
 func (e EngineStore) EngineByID(ctx context.Context, id string) (models.Engine, error) {
+	tracer := otel.Tracer("engine-store")
+	ctx, span := tracer.Start(ctx, "EngineByID-Store")
+	defer span.End()
+
 	var engine models.Engine
 
 	tx, err := e.db.BeginTx(ctx, nil)
@@ -54,6 +59,10 @@ func (e EngineStore) EngineByID(ctx context.Context, id string) (models.Engine, 
 }
 
 func (e EngineStore) CreateEngine(ctx context.Context, engineReq *models.EngineRequest) (models.Engine, error) {
+
+	tracer := otel.Tracer("engine-store")
+	ctx, span := tracer.Start(ctx, "CreateEngine-Store")
+	defer span.End()
 
 	tx, err := e.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -92,6 +101,10 @@ func (e EngineStore) CreateEngine(ctx context.Context, engineReq *models.EngineR
 }
 
 func (e EngineStore) UpdateEngine(ctx context.Context, id string, engineReq *models.EngineRequest) (models.Engine, error) {
+
+	tracer := otel.Tracer("engine-store")
+	ctx, span := tracer.Start(ctx, "UpdateEngine-Store")
+	defer span.End()
 
 	engineID, err := uuid.Parse(id)
 	if err != nil {
@@ -141,6 +154,10 @@ func (e EngineStore) UpdateEngine(ctx context.Context, id string, engineReq *mod
 }
 
 func (e EngineStore) DeleteEngine(ctx context.Context, id string) (models.Engine, error) {
+
+	tracer := otel.Tracer("engine-store")
+	ctx, span := tracer.Start(ctx, "DeleteEngine-Store")
+	defer span.End()
 
 	var engine models.Engine
 
