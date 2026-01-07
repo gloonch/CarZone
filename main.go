@@ -10,6 +10,8 @@ import (
 	"github.com/gloonch/CarZone/driver"
 	carHandler "github.com/gloonch/CarZone/handler/car"
 	engineHandler "github.com/gloonch/CarZone/handler/engine"
+	loginHandler "github.com/gloonch/CarZone/handler/login"
+	"github.com/gloonch/CarZone/middleware"
 	carService "github.com/gloonch/CarZone/service/car"
 	engineService "github.com/gloonch/CarZone/service/engine"
 	carStore "github.com/gloonch/CarZone/store/car"
@@ -44,16 +46,22 @@ func main() {
 		log.Fatalf("Error while executing the schema file: ", err)
 	}
 
-	router.HandleFunc("/cars/{id}", carHandler.GetCarByID).Methods("GET")
-	router.HandleFunc("/cars", carHandler.GetCarByBrand).Methods("GET")
-	router.HandleFunc("/cars", carHandler.GetCarByID).Methods("POST")
-	router.HandleFunc("/cars/{id}", carHandler.UpdateCar).Methods("PUT")
-	router.HandleFunc("/cars/{id}", carHandler.DeleteCar).Methods("DELETE")
+	router.HandleFunc("/login", loginHandler.LoginHandler).Methods("POST")
 
-	router.HandleFunc("/engine/{id}", engineHandler.GetEngineByID).Methods("GET")
-	router.HandleFunc("/engine", engineHandler.CreateEngine).Methods("POST")
-	router.HandleFunc("/engine/{id}", engineHandler.UpdateEngine).Methods("PUT")
-	router.HandleFunc("/engine/{id}", engineHandler.DeleteEngine).Methods("DELETE")
+	// Middleware
+	protected := router.PathPrefix("/").Subrouter()
+	protected.Use(middleware.AuthMiddleware)
+
+	protected.HandleFunc("/cars/{id}", carHandler.GetCarByID).Methods("GET")
+	protected.HandleFunc("/cars", carHandler.GetCarByBrand).Methods("GET")
+	protected.HandleFunc("/cars", carHandler.GetCarByID).Methods("POST")
+	protected.HandleFunc("/cars/{id}", carHandler.UpdateCar).Methods("PUT")
+	protected.HandleFunc("/cars/{id}", carHandler.DeleteCar).Methods("DELETE")
+
+	protected.HandleFunc("/engine/{id}", engineHandler.GetEngineByID).Methods("GET")
+	protected.HandleFunc("/engine", engineHandler.CreateEngine).Methods("POST")
+	protected.HandleFunc("/engine/{id}", engineHandler.UpdateEngine).Methods("PUT")
+	protected.HandleFunc("/engine/{id}", engineHandler.DeleteEngine).Methods("DELETE")
 
 	port := os.Getenv("PORT")
 	if port == "" {
